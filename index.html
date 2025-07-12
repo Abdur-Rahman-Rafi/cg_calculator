@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UIU CGPA & Tuition Fee Calculator</title>
+  <style>
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background: #2a2a72;
+      color: #fff;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 28px;
+      text-shadow: 0 0 10px #ffd700;
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .tab-button {
+      padding: 10px 20px;
+      background: #4444aa88;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 600;
+      color: white;
+      transition: background-color 0.3s ease;
+      min-width: 130px;
+      text-align: center;
+      user-select: none;
+    }
+    .tab-button.active,
+    .tab-button:hover {
+      background: #ffd700;
+      color: #222;
+      box-shadow: 0 0 10px #ffd700aa;
+    }
+    .tab {
+      display: none;
+      background: #4444aa55;
+      padding: 20px 30px;
+      border-radius: 15px;
+      width: 100%;
+      max-width: 700px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .tab.active {
+      display: block;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      margin-bottom: 15px;
+      outline: none;
+    }
+    button {
+      background: #ffd700;
+      border: none;
+      border-radius: 25px;
+      padding: 12px 0;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      font-size: 17px;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    button:hover {
+      background: #e6c200;
+    }
+    #courses {
+      margin-bottom: 20px;
+    }
+    .course-row {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .course-row label {
+      flex: 0 0 90px;
+      color: white;
+      font-weight: 600;
+      user-select: none;
+    }
+    .course-row select {
+      flex: 1;
+      color: #222;
+    }
+    .remove-course {
+      background: #ff4c4c;
+      color: white;
+      flex: 0 0 75px;
+      padding: 8px 10px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    .remove-course:hover {
+      background: #cc3c3c;
+    }
+    #cgpaResultBox, #tuitionResultBox {
+      margin-top: 20px;
+      background-color: #3333aa66;
+      border-left: 5px solid #ffd700;
+      border-radius: 15px;
+      padding: 20px;
+      color: #fff;
+      font-size: 18px;
+      line-height: 1.6;
+      box-shadow: 0 0 10px #0006;
+    }
+    footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #ffd700cc;
+      text-align: center;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>UIU CGPA & Tuition Fee Calculator</h1>
+
+  <div class="tabs">
+    <button class="tab-button active" onclick="switchTab('cgpa', this)">CGPA Calculator</button>
+    <button class="tab-button" onclick="switchTab('tuition', this)">Tuition Fee Calculator</button>
+  </div>
+
+  <div id="cgpa" class="tab active">
+    <label for="completedCredits">Completed Credits</label>
+    <input type="number" id="completedCredits" placeholder="Enter completed credits" min="0" />
+
+    <label for="currentCGPA">Current CGPA (0-4)</label>
+    <input type="number" id="currentCGPA" placeholder="Enter current CGPA" min="0" max="4" step="0.01" />
+
+    <div id="courses"></div>
+
+    <button type="button" onclick="addCourse()">Add Running Course</button>
+    <button type="button" onclick="calculateCGGPA()">Calculate Updated CGPA</button>
+
+    <div id="cgpaResultBox"></div>
+  </div>
+
+  <div id="tuition" class="tab">
+    <label for="creditCount">Total Credit Hours</label>
+    <input type="number" id="creditCount" placeholder="Enter total credits" min="0" />
+
+    <label for="perCreditFee">Per Credit Fee</label>
+    <select id="perCreditFee">
+      <option value="6500">6500 Tk</option>
+      <option value="6000">6000 Tk</option>
+      <option value="5500">5500 Tk</option>
+      <option value="5000">5000 Tk</option>
+    </select>
+
+    <label for="installments">Number of Installments</label>
+    <select id="installments">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+    </select>
+
+    <button type="button" onclick="calculateTuition()">Calculate Tuition</button>
+
+    <div id="tuitionResultBox"></div>
+  </div>
+
+  <footer>Developed by Abdur Rahman Rafi - Dept of CSE, UIU</footer>
+
+  <script>
+    function switchTab(id, btn) {
+      document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+      document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+
+      document.getElementById(id).classList.add("active");
+      btn.classList.add("active");
+    }
+
+    function addCourse() {
+      const container = document.getElementById("courses");
+      const index = container.children.length + 1;
+      const div = document.createElement("div");
+      div.className = "course-row";
+      div.innerHTML = `
+        <label>Course ${index}:</label>
+        <select class="credit">
+          <option value="">Credit</option>
+          <option value="1">1</option>
+          <option value="1.5">1.5</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+        <select class="grade">
+          <option value="">Grade</option>
+          <option value="A">A</option>
+          <option value="A-">A-</option>
+          <option value="B+">B+</option>
+          <option value="B">B</option>
+          <option value="B-">B-</option>
+          <option value="C+">C+</option>
+          <option value="C">C</option>
+          <option value="C-">C-</option>
+          <option value="D+">D+</option>
+          <option value="D">D</option>
+          <option value="F">F</option>
+        </select>
+        <button type="button" class="remove-course" onclick="this.parentElement.remove()">Remove</button>
+      `;
+      container.appendChild(div);
+    }
+
+    function calculateCGGPA() {
+      const completedCredits = parseFloat(document.getElementById("completedCredits").value);
+      const currentCGPA = parseFloat(document.getElementById("currentCGPA").value);
+      const cgpaBox = document.getElementById("cgpaResultBox");
+
+      if (isNaN(completedCredits) || completedCredits < 0) {
+        cgpaBox.textContent = "Please enter a valid number for Completed Credits.";
+        return;
+      }
+      if (isNaN(currentCGPA) || currentCGPA < 0 || currentCGPA > 4) {
+        cgpaBox.textContent = "Please enter a valid Current CGPA between 0 and 4.";
+        return;
+      }
+
+      const courses = document.querySelectorAll("#courses .course-row");
+      if (courses.length === 0) {
+        cgpaBox.textContent = "Please add at least one running course.";
+        return;
+      }
+
+      const gradeMap = {
+        "A": 4.0, "A-": 3.67, "B+": 3.33, "B": 3.0,
+        "B-": 2.67, "C+": 2.33, "C": 2.0, "C-": 1.67,
+        "D+": 1.33, "D": 1.0, "F": 0.0
+      };
+
+      let newQuality = 0, newCredits = 0;
+
+      for (const row of courses) {
+        const credit = parseFloat(row.querySelector(".credit").value);
+        const grade = row.querySelector(".grade").value;
+
+        if (isNaN(credit) || !gradeMap.hasOwnProperty(grade)) {
+          cgpaBox.textContent = "Please enter valid credits and grades for all courses.";
+          return;
+        }
+
+        newCredits += credit;
+        newQuality += credit * gradeMap[grade];
+      }
+
+      const totalCredits = completedCredits + newCredits;
+      const updatedCGPA = Math.round((completedCredits * currentCGPA + newQuality) / totalCredits * 1000) / 1000;
+
+      cgpaBox.innerHTML = `
+        <strong>Updated CGPA:</strong> ${updatedCGPA}<br>
+        <strong>Total Completed Credits:</strong> ${totalCredits}<br>
+        <strong>Current Semester Credits:</strong> ${newCredits}
+      `;
+    }
+
+    function calculateTuition() {
+      const credits = parseFloat(document.getElementById("creditCount").value);
+      const perCreditFee = parseInt(document.getElementById("perCreditFee").value);
+      const installments = parseInt(document.getElementById("installments").value);
+      const tuitionBox = document.getElementById("tuitionResultBox");
+
+      if (isNaN(credits) || credits <= 0) {
+        tuitionBox.textContent = "Please enter a valid number of total credits.";
+        return;
+      }
+
+      const regFee = perCreditFee;
+      const tuition = credits * perCreditFee;
+      const total = tuition + regFee;
+
+      let result = `<strong>Registration Fee:</strong> ${regFee.toLocaleString()} Tk<br>`;
+
+      if (installments === 1) {
+        result += `<strong>Total Fee (1 Installment):</strong> ${total.toLocaleString()} Tk`;
+      } else if (installments === 2) {
+        result += `<strong>1st (40%):</strong> ${(total * 0.4).toFixed(2)} Tk<br><strong>2nd (60%):</strong> ${(total * 0.6).toFixed(2)} Tk`;
+      } else if (installments === 3) {
+        result += `<strong>1st (40%):</strong> ${(total * 0.4).toFixed(2)} Tk<br><strong>2nd (30%):</strong> ${(total * 0.3).toFixed(2)} Tk<br><strong>3rd (30%):</strong> ${(total * 0.3).toFixed(2)} Tk`;
+      }
+
+      tuitionBox.innerHTML = result;
+    }
+  </script>
+</body>
+</html>
